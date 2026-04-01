@@ -1,0 +1,1 @@
+ALTER TABLE appointments ADD COLUMN patient_email VARCHAR(255) NOT NULL DEFAULT '';

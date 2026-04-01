@@ -1,0 +1,2 @@
+ALTER TABLE appointments
+ALTER COLUMN status TYPE VARCHAR(20);
