@@ -1,0 +1,47 @@
+server:
+  port: 8084
+
+spring:
+  application:
+    name: notification-service
+
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: theonlymailsender@gmail.com
+    password: izzx fbud zdvk uuwi
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+app:
+  mail:
+    from: theonlymailsender@gmail.com
+
+rabbit:
+  exchange: healthcare.exchange
+  queue: appointment.queue
+  routing-key: healthcare.routingkey
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://${EUREKA_USERNAME:eureka}:${EUREKA_PASSWORD:password}@localhost:8761/eureka/
+    registry-fetch-interval-seconds: 5
+  instance:
+    prefer-ip-address: true
+    lease-renewal-interval-in-seconds: 10
+    lease-expiration-duration-in-seconds: 30
+
+logging:
+  level:
+    com.healthcare.notification: DEBUG
