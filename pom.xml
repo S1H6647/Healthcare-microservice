@@ -42,7 +42,7 @@
         <module>pharmacist-service</module>
         <module>inventory-service</module>
         <module>prescription-service</module>
-        <module>receipt-service</module>
+        <module>receptionist-service</module>
     </modules>
 
     <dependencyManagement>

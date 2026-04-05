@@ -14,6 +14,8 @@ import com.healthcare.appointment.messaging.AppointmentEvent;
 import com.healthcare.appointment.messaging.AppointmentEventPublisher;
 import com.healthcare.appointment.repository.AppointmentRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -76,6 +78,12 @@ public class AppointmentService {
         publisher.publishAppointmentEvent(AppointmentEvent.from(saved));
 
         return AppointmentResponse.from(saved);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<AppointmentResponse> getAllAppointments(Pageable pageable) {
+        return appointmentRepository.findAll(pageable)
+                .map(AppointmentResponse::from);
     }
 
     @Transactional(readOnly = true)

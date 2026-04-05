@@ -1,4 +1,4 @@
-package com.healthcare.appointment.exception;
+package com.healthcare.pharmacist.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,8 +20,8 @@ public class GlobalExceptionHandler {
                 .body(new ErrorResponse(ex.getMessage(), HttpStatus.NOT_FOUND.value()));
     }
 
-    @ExceptionHandler(AppointmentConflictException.class)
-    public ResponseEntity<ErrorResponse> handleConflictException(AppointmentConflictException ex) {
+    @ExceptionHandler(DuplicateResourceException.class)
+    public ResponseEntity<ErrorResponse> handleConflictException(DuplicateResourceException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(new ErrorResponse(ex.getMessage(), HttpStatus.CONFLICT.value()));
     }
