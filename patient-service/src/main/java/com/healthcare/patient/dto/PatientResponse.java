@@ -16,6 +16,7 @@ public record PatientResponse(
         LocalDate dateOfBirth,
         String gender,
         String address,
+        boolean isProfileCompleted,
         LocalDateTime createdAt
 ) {
     public static PatientResponse from(Patient patient) {
@@ -28,6 +29,7 @@ public record PatientResponse(
                 .dateOfBirth(patient.getDateOfBirth())
                 .gender(patient.getGender())
                 .address(patient.getAddress())
+                .isProfileCompleted(patient.isProfileCompleted())
                 .createdAt(patient.getCreatedAt())
                 .build();
     }

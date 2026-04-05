@@ -1,10 +1,12 @@
 package com.healthcare.patient.service;
 
+import com.healthcare.patient.dto.AuthRegisterRequest;
 import com.healthcare.patient.dto.PatientRequest;
 import com.healthcare.patient.dto.PatientResponse;
 import com.healthcare.patient.entity.Patient;
 import com.healthcare.patient.exception.DuplicateEmailException;
 import com.healthcare.patient.exception.ResourceNotFoundException;
+import com.healthcare.patient.feign.AuthClient;
 import com.healthcare.patient.repository.PatientRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,14 +19,17 @@ import java.util.List;
 public class PatientService {
 
     private final PatientRepository patientRepository;
+    private final AuthClient authClient;
 
     @Transactional
     public PatientResponse registerPatient(PatientRequest request) {
-        if (patientRepository.existsByEmail(request.email())) {
+        if (request.email() != null && patientRepository.existsByEmail(request.email())) {
             throw new DuplicateEmailException(
                     "Patient with email " + request.email() + " already exists"
             );
         }
+
+        boolean isComplete = isProfileComplete(request);
 
         Patient patient = Patient.builder()
                 .firstName(request.firstName())
@@ -34,10 +39,28 @@ public class PatientService {
                 .dateOfBirth(request.dateOfBirth())
                 .gender(request.gender())
                 .address(request.address())
+                .isProfileCompleted(isComplete)
                 .build();
 
         Patient saved = patientRepository.save(patient);
+
+        // Sync with Auth Service
+        authClient.register(AuthRegisterRequest.builder()
+                .firstName(request.firstName())
+                .lastName(request.lastName())
+                .email(request.email() != null ? request.email() : request.phone() + "@healthcare.com")
+                .phone(request.phone())
+                .password(request.phone()) // Use phone as default password
+                .build());
+
         return PatientResponse.from(saved);
+    }
+
+    private boolean isProfileComplete(PatientRequest request) {
+        return request.email() != null && !request.email().isBlank()
+                && request.phone() != null && !request.phone().isBlank()
+                && request.dateOfBirth() != null
+                && request.gender() != null && !request.gender().isBlank();
     }
 
     @Transactional(readOnly = true)
@@ -60,7 +83,7 @@ public class PatientService {
         Patient patient = patientRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Patient not found with id: " + id));
 
-        if (!patient.getEmail().equals(request.email())
+        if (request.email() != null && !request.email().equals(patient.getEmail())
                 && patientRepository.existsByEmail(request.email())) {
             throw new DuplicateEmailException(
                     "Email " + request.email() + " is already in use"
@@ -74,6 +97,7 @@ public class PatientService {
         patient.setDateOfBirth(request.dateOfBirth());
         patient.setGender(request.gender());
         patient.setAddress(request.address());
+        patient.setProfileCompleted(isProfileComplete(request));
 
         return PatientResponse.from(patientRepository.save(patient));
     }

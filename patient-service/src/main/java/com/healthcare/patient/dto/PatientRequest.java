@@ -16,7 +16,6 @@ public record PatientRequest(
         @NotBlank(message = "Last name is required")
         String lastName,
 
-        @NotBlank(message = "Email is required")
         @Email(message = "Invalid email format")
         String email,
 
@@ -24,11 +23,9 @@ public record PatientRequest(
         @Pattern(regexp = "^(98|97)\\d{8}$", message = "Phone number must start with 98 or 97 and be 10 digits long")
         String phone,
 
-        @NotNull(message = "Date of birth is required")
         @Past(message = "Date of birth must be in the past")
         LocalDate dateOfBirth,
 
-        @NotBlank(message = "Gender is required")
         String gender,
 
         String address
