@@ -39,7 +39,7 @@ eureka:
 
 logging:
   level:
-    com.healthcare.patient: DEBUG
+    com.healthcare.prescription: DEBUG
 
 springdoc:
   api-docs:

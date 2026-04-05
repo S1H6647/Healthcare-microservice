@@ -3,11 +3,17 @@ package com.healthcare.prescription.service;
 import com.healthcare.prescription.dto.*;
 import com.healthcare.prescription.entity.MedicineSummary;
 import com.healthcare.prescription.entity.Prescription;
+import com.healthcare.prescription.entity.PrescriptionStatus;
 import com.healthcare.prescription.exception.AccessDeniedException;
 import com.healthcare.prescription.exception.ResourceNotFoundException;
 import com.healthcare.prescription.feign.DoctorClient;
+import com.healthcare.prescription.feign.InventoryClient;
+import com.healthcare.prescription.repository.MedicineSummaryRepository;
 import com.healthcare.prescription.repository.PrescriptionRepository;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,8 +23,11 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PrescriptionService {
 
+    private static final Logger log = LoggerFactory.getLogger(PrescriptionService.class);
     private final PrescriptionRepository prescriptionRepository;
     private final DoctorClient doctorClient;
+    private final MedicineSummaryRepository medicineSummaryRepository;
+    private final InventoryClient inventoryClient;
 
     @Transactional
     public PrescriptionResponse createPrescription(PrescriptionRequest request) {
@@ -27,11 +36,29 @@ public class PrescriptionService {
                 .patientName(request.patientName())
                 .doctorId(request.doctorId())
                 .doctorName(request.doctorName())
+                .instruction(request.instruction())
                 .visitDate(request.visitDate())
                 .symptoms(request.symptoms())
                 .diagnosis(request.diagnosis())
                 .note(request.note())
+                .status(PrescriptionStatus.PENDING)
                 .build();
+
+        if (request.items() != null && !request.items().isEmpty()) {
+            List<MedicineSummary> medicines = request.items().stream()
+                    .map(item -> MedicineSummary.builder()
+                            .medicineId(item.medicineId())
+                            .drugName(item.drugName())
+                            .dosage(item.dosage())
+                            .frequency(item.frequency())
+                            .durationDays(item.durationDays())
+                            .route(item.route())
+                            .instructions(item.instructions())
+                            .prescription(prescription)
+                            .build())
+                    .toList();
+            prescription.setMedicines(medicines);
+        }
 
         return PrescriptionResponse.from(prescriptionRepository.save(prescription));
     }
@@ -77,16 +104,28 @@ public class PrescriptionService {
         prescription.setPatientName(request.patientName());
         prescription.setDoctorId(request.doctorId());
         prescription.setDoctorName(request.doctorName());
-//        prescription.setMedicineName(request.medicineName());
-//        prescription.setShortDescription(request.shortDescription());
-//        prescription.setMedicineType(request.medicineType());
-//        prescription.setInstruction(request.instruction());
-//        prescription.setQuantity(request.quantity());
-//        prescription.setIntakeDuration(request.intakeDuration());
+        prescription.setInstruction(request.instruction());
         prescription.setVisitDate(request.visitDate());
         prescription.setSymptoms(request.symptoms());
         prescription.setDiagnosis(request.diagnosis());
         prescription.setNote(request.note());
+
+        if (request.items() != null) {
+            prescription.getMedicines().clear();
+            List<MedicineSummary> medicines = request.items().stream()
+                    .map(item -> MedicineSummary.builder()
+                            .medicineId(item.medicineId())
+                            .drugName(item.drugName())
+                            .dosage(item.dosage())
+                            .frequency(item.frequency())
+                            .durationDays(item.durationDays())
+                            .route(item.route())
+                            .instructions(item.instructions())
+                            .prescription(prescription)
+                            .build())
+                    .toList();
+            prescription.getMedicines().addAll(medicines);
+        }
 
         return PrescriptionResponse.from(prescriptionRepository.save(prescription));
     }
@@ -105,11 +144,12 @@ public class PrescriptionService {
 
         DoctorResponse doctor = doctorClient.getMyDoctor(email);
 
-        if (doctor.id().equals(prescription.getDoctorId())) {
+        if (!doctor.id().equals(prescription.getDoctorId())) {
             throw new AccessDeniedException("Access denied! Only doctors can create prescriptions");
         }
 
         MedicineSummary medicineSummary = MedicineSummary.builder()
+                .medicineId(request.medicineId())
                 .drugName(request.drugName())
                 .dosage(request.dosage())
                 .frequency(request.frequency())
@@ -119,6 +159,49 @@ public class PrescriptionService {
                 .prescription(prescription)
                 .build();
 
+        medicineSummaryRepository.save(medicineSummary);
         return MedicineItemResponse.from(medicineSummary);
     }
+
+    @Transactional
+    public PrescriptionResponse updateStatus(Long id, PrescriptionStatus status) {
+        Prescription prescription = prescriptionRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Prescription not found for id: " + id));
+
+        prescription.setStatus(status);
+
+        if (status == PrescriptionStatus.DISPENSED) {
+            List<DeductStockRequest> stockRequests = prescription.getMedicines().stream()
+                    .map(medicine ->
+                            new DeductStockRequest(
+                                    medicine.getMedicineId(),
+                                    calculateTotalPills(medicine.getFrequency(), medicine.getDurationDays())))
+                    .toList();
+            log.debug("Deducting stock for prescription id {}: {}", id, stockRequests);
+            inventoryClient.deductStock(stockRequests);
+        }
+
+        return PrescriptionResponse.from(prescriptionRepository.save(prescription));
+    }
+
+    private @NotNull Integer calculateTotalPills(String frequency, Integer durationDays) {
+        int pillsPerDay = switch (frequency.toUpperCase()) {
+            case "OD" -> 1;          // Once Daily
+            case "BID" -> 2;          // Twice Daily
+            case "TID" -> 3;          // Three Times Daily
+            case "QID" -> 4;          // Four Times Daily
+            case "PRN" -> 0;          // As Needed — indeterminate, return 0 or handle separately
+            case "STAT" -> 1;          // One-time immediate dose, not multiplied by days
+            default -> throw new IllegalArgumentException("Unknown frequency: " + frequency);
+        };
+
+        // STAT is a single one-time dose regardless of durationDays
+        if (frequency.equalsIgnoreCase("STAT")) return 1;
+
+        // PRN has no fixed count
+        if (frequency.equalsIgnoreCase("PRN")) return 0;
+
+        return pillsPerDay * durationDays;
+    }
+
 }

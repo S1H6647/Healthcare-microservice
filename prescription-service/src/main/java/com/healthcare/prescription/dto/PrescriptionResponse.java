@@ -1,6 +1,7 @@
 package com.healthcare.prescription.dto;
 
 import com.healthcare.prescription.entity.Prescription;
+import com.healthcare.prescription.entity.PrescriptionStatus;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -16,6 +17,7 @@ public record PrescriptionResponse(
         LocalDate visitDate,
         String symptoms,
         String diagnosis,
+        PrescriptionStatus status,
         String note,
         LocalDateTime createdAt,
         LocalDateTime updatedAt,
@@ -36,6 +38,7 @@ public record PrescriptionResponse(
                 prescription.getVisitDate(),
                 prescription.getSymptoms(),
                 prescription.getDiagnosis(),
+                prescription.getStatus(),
                 prescription.getNote(),
                 prescription.getCreatedAt(),
                 prescription.getUpdatedAt(),

@@ -1,5 +1,6 @@
 package com.healthcare.inventory.controller;
 
+import com.healthcare.inventory.dto.DeductStockRequest;
 import com.healthcare.inventory.dto.MedicineRequest;
 import com.healthcare.inventory.dto.MedicineResponse;
 import com.healthcare.inventory.service.MedicineService;
@@ -49,5 +50,13 @@ public class MedicineController {
     public ResponseEntity<Void> deleteMedicine(@PathVariable Long id) {
         medicineService.deleteMedicine(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/deduct")
+    public ResponseEntity<Void> deductStock(
+            @RequestBody @Valid List<DeductStockRequest> request
+    ) {
+        medicineService.deductStock(request);
+        return ResponseEntity.ok().build();
     }
 }

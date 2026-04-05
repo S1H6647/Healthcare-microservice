@@ -1,10 +1,12 @@
 package com.healthcare.inventory.service;
 
+import com.healthcare.inventory.dto.DeductStockRequest;
 import com.healthcare.inventory.dto.MedicineRequest;
 import com.healthcare.inventory.dto.MedicineResponse;
 import com.healthcare.inventory.entity.Medicine;
 import com.healthcare.inventory.exception.ResourceNotFoundException;
 import com.healthcare.inventory.repository.MedicineRepository;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -73,5 +75,25 @@ public class MedicineService {
             throw new ResourceNotFoundException("Medicine not found with id: " + id);
         }
         medicineRepository.deleteById(id);
+    }
+
+    @Transactional
+    public void deductStock(@Valid List<DeductStockRequest> request) {
+        for (DeductStockRequest stockRequest : request) {
+
+            Medicine medicine = medicineRepository.findById(stockRequest.medicineId())
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "Medicine not found with id: " + stockRequest.medicineId()
+                    ));
+
+            if (medicine.getQuantity() < stockRequest.quantityToDeduct()) {
+                throw new IllegalArgumentException(
+                        "Insufficient stock for medicine: " + medicine.getMedicineName()
+                );
+            }
+
+            medicine.setQuantity(medicine.getQuantity() - stockRequest.quantityToDeduct());
+            medicineRepository.save(medicine);
+        }
     }
 }

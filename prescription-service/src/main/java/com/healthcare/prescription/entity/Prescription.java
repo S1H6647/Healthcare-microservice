@@ -25,32 +25,32 @@ public class Prescription {
     @Column(name = "patient_id", nullable = false)
     private Long patientId;
 
-    @Column(name = "patient_name", nullable = false)
     private String patientName;
 
     @Column(name = "doctor_id", nullable = false)
     private Long doctorId;
 
-    @Column(name = "doctor_name", nullable = false)
     private String doctorName;
 
     @OneToMany(mappedBy = "prescription", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<MedicineSummary> medicines = new ArrayList<>();
 
-    @Column(nullable = false)
     private String instruction;
 
-    @Column(name = "visit_date", nullable = false)
+    @Column(name = "visit_date")
     private LocalDate visitDate;
 
-    @Column(nullable = false)
     private String symptoms;
 
     @Column(nullable = false)
     private String diagnosis;
 
     private String note;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "prescription_status", nullable = false)
+    private PrescriptionStatus status;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

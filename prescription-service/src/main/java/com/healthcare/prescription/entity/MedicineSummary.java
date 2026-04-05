@@ -17,6 +17,9 @@ public class MedicineSummary {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "medicine_id", nullable = false)
+    private Long medicineId;
+
     @Column(name = "drug_name", nullable = false)
     private String drugName;
 

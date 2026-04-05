@@ -4,12 +4,14 @@ import com.healthcare.prescription.dto.MedicineItemRequest;
 import com.healthcare.prescription.dto.MedicineItemResponse;
 import com.healthcare.prescription.dto.PrescriptionRequest;
 import com.healthcare.prescription.dto.PrescriptionResponse;
+import com.healthcare.prescription.entity.PrescriptionStatus;
 import com.healthcare.prescription.service.PrescriptionService;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.ForbiddenException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -59,6 +61,14 @@ public class PrescriptionController {
         return ResponseEntity.ok(prescriptionService.updatePrescription(id, request));
     }
 
+    @PreAuthorize("hasRole('PHARMACIST')")
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<PrescriptionResponse> updatePrescriptionStatus(
+            @PathVariable Long id,
+            @RequestParam PrescriptionStatus status) {
+        return ResponseEntity.ok(prescriptionService.updateStatus(id, status));
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletePrescription(@PathVariable Long id) {
         prescriptionService.deletePrescription(id);
@@ -66,13 +76,11 @@ public class PrescriptionController {
     }
 
     // Medicines
-
     @PostMapping("/{id}/items")
     public ResponseEntity<MedicineItemResponse> addMedicine(
             @PathVariable Long id,
             @RequestBody @Valid MedicineItemRequest request,
-            @RequestHeader("X-User-Id") String userId,
-            @RequestHeader("Role") String role,
+            @RequestHeader("X-User-Role") String role,
             @RequestHeader("X-User-Email") String email
     ) {
         if (!"DOCTOR".equals(role)) {
