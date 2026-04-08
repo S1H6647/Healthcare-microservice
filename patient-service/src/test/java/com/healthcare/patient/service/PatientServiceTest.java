@@ -5,6 +5,7 @@ import com.healthcare.patient.dto.PatientResponse;
 import com.healthcare.patient.entity.Patient;
 import com.healthcare.patient.exception.DuplicateEmailException;
 import com.healthcare.patient.exception.ResourceNotFoundException;
+import com.healthcare.patient.feign.AuthClient;
 import com.healthcare.patient.repository.PatientRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
