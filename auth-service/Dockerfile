@@ -19,11 +19,11 @@ COPY pharmacist-service/pom.xml pharmacist-service/pom.xml
 COPY prescription-service/pom.xml prescription-service/pom.xml
 COPY receptionist-service/pom.xml receptionist-service/pom.xml
 
-RUN ./mvnw dependency:go-offline -pl auth-service -am -q
+RUN ./mvnw dependency:go-offline -pl auth-service -q
 
 COPY auth-service/src auth-service/src
 
-RUN ./mvnw package -pl auth-service -am -Dmaven.test.skip=true -q
+RUN ./mvnw package -pl auth-service -Dmaven.test.skip=true -q
 
 FROM eclipse-temurin:21-jre-alpine
 

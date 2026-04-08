@@ -48,3 +48,7 @@ springdoc:
   swagger-ui:
     path: /swagger-ui.html
     operations-sorter: method
+
+services:
+  url:
+    patient-service: ${AUTH_SERVICE_URL:http://localhost:8085}
