@@ -13,6 +13,7 @@ eureka:
   instance:
     hostname: ${EUREKA_HOSTNAME:localhost}
   client:
+    enabled: false
     register-with-eureka: false   # Eureka server doesn't register with itself
     fetch-registry: false         # Doesn't need to fetch its own registry
   server:
