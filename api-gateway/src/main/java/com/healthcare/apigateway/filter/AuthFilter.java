@@ -20,9 +20,13 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AuthFilter implements GlobalFilter, Ordered {
 
-    private static final List<String> PUBLIC_PATHS = List.of(
+    private static final List<String> PUBLIC_PATH_PREFIXES = List.of(
             "/api/auth/register",
             "/api/auth/login"
+    );
+    private static final List<String> PUBLIC_EXACT_PATHS = List.of(
+            "/",
+            "/health"
     );
     private final JwtService jwtService;
 
@@ -87,6 +91,7 @@ public class AuthFilter implements GlobalFilter, Ordered {
     }
 
     private boolean isPublicPath(String path, HttpMethod method) {
-        return PUBLIC_PATHS.stream().anyMatch(path::startsWith);
+        return PUBLIC_EXACT_PATHS.contains(path)
+                || PUBLIC_PATH_PREFIXES.stream().anyMatch(path::startsWith);
     }
 }

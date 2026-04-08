@@ -68,4 +68,4 @@ eureka:
 logging:
   level:
     com.healthcare.apigateway: DEBUG
-    org.springframework.cloud.gateway: TRACE
+    org.springframework.cloud.gateway: INFO
