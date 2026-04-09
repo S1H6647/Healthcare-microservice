@@ -42,6 +42,12 @@ public class GlobalExceptionHandler {
                 .body(new ErrorResponse("An unexpected error occurred", HttpStatus.INTERNAL_SERVER_ERROR.value()));
     }
 
+    @ExceptionHandler(ForbiddenException.class)
+    public ResponseEntity<ErrorResponse> handleForbiddenException(Exception ex) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new ErrorResponse(ex.getMessage(), HttpStatus.FORBIDDEN.value()));
+    }
+
     public record ErrorResponse(String message, int status, LocalDateTime timestamp) {
         public ErrorResponse(String message, int status) {
             this(message, status, LocalDateTime.now());

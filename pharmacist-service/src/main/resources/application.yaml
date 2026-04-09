@@ -19,6 +19,7 @@ spring:
       keepalive-time: 60000
 
   jpa:
+    open-in-view: false
     hibernate:
       ddl-auto: validate           # Flyway owns the schema — JPA only validates
     show-sql: false
@@ -31,18 +32,6 @@ spring:
     locations: classpath:db/migration
     baseline-on-migrate: true
 
-eureka:
-  client:
-    enabled: false
-    register-with-eureka: false
-    fetch-registry: false
-    service-url:
-      defaultZone: ${EUREKA_URL:http://${EUREKA_USERNAME:eureka}:${EUREKA_PASSWORD:password}@localhost:8761/eureka/}
-    registry-fetch-interval-seconds: 5   # Fetch registry every 5s (default 30)
-  instance:
-    prefer-ip-address: true              # Register with IP not hostname
-    lease-renewal-interval-in-seconds: 10     # Heartbeat every 10s (default 30)
-    lease-expiration-duration-in-seconds: 30  # Deregister if no heartbeat for 30s
 
 logging:
   level:

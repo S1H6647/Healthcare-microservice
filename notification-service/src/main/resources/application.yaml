@@ -29,18 +29,6 @@ rabbit:
   queue: appointment.queue
   routing-key: healthcare.routingkey
 
-eureka:
-  client:
-    enabled: false
-    register-with-eureka: false
-    fetch-registry: false
-    service-url:
-      defaultZone: ${EUREKA_URL:http://${EUREKA_USERNAME:eureka}:${EUREKA_PASSWORD:password}@localhost:8761/eureka/}
-    registry-fetch-interval-seconds: 5
-  instance:
-    prefer-ip-address: true
-    lease-renewal-interval-in-seconds: 10
-    lease-expiration-duration-in-seconds: 30
 
 logging:
   level:
